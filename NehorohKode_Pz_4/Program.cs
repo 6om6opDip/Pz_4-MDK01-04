@@ -1,154 +1,109 @@
-﻿namespace NehorohKode_Pz_4
+﻿using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.ComponentModel;
+
+namespace DateOperations
 {
-	internal class Program
-	{
-		static void Main(string[] args)
-		{
-			Console.WriteLine("🌀 ChronoCrypt Activation Sequence 🌀");
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("============================");
 
-			Console.Write("\nEnter temporal signature: ");
-			string input = Console.ReadLine();
+            // Первая часть: проверка даты и вывод дня недели
+            ProcessSingleDate();
 
-			if (Vrf(input))
-			{
-				string conv = Transmute(input);
-				string day = Rev(input);
+            // Вторая часть: операции с двумя датами
+            ProcessDateOperations();
 
-				Console.WriteLine($"{conv}");
-				Console.WriteLine($"{day}");
-			}
-			else
-			{
-				Console.WriteLine("Invalid");
-			}
+            Console.WriteLine("\n============================");
+        }
 
-			Console.Write("\nEnter first quantum coordinates: ");
-			var parts1 = Console.ReadLine().Split(' ');
+        private static void ProcessSingleDate()
+        {
+            Console.Write("\nВведите дату (ДД/MM/ГГГГ): ");
+            string input = Console.ReadLine();
 
-			if (parts1.Length == 3 &&
-				int.TryParse(parts1[0], out int d1) &&
-				int.TryParse(parts1[1], out int m1) &&
-				int.TryParse(parts1[2], out int y1) &&
-				Vrf($"{d1}/{m1}/{y1}"))
-			{
-				Quantum q1 = new Quantum(d1, m1, y1);
+            if (DateValidator.IsValidDate(input))
+            {
+                string convertedDate = DateConverter.ConvertDateFormat(input);
+                string dayOfWeek = DateCalculator.GetDayOfWeek(input);
 
-				Console.Write("Enter second quantum coordinates: ");
-				var parts2 = Console.ReadLine().Split(' ');
+                Console.WriteLine($"US формат: {convertedDate}");
+                Console.WriteLine($"День недели: {dayOfWeek}");
+            }
+            else
+            {
+                Console.WriteLine("Invalid date");
+            }
+        }
 
-				if (parts2.Length == 3 &&
-					int.TryParse(parts2[0], out int d2) &&
-					int.TryParse(parts2[1], out int m2) &&
-					int.TryParse(parts2[2], out int y2) &&
-					Vrf($"{d2}/{m2}/{y2}"))
-				{
-					Quantum q2 = new Quantum(d2, m2, y2);
+        private static void ProcessDateOperations()
+        {
+            Console.Write("\nВведите дату для добавки дней в формате (DD MM YYYY): ");
+            var parts1 = Console.ReadLine().Split(' ');
 
-					int divergence = q1.Maasu(q2);
-					Console.WriteLine($"Temporal divergence: {divergence} days");
+            if (parts1.Length == 3 &&
+                int.TryParse(parts1[0], out int day1) &&
+                int.TryParse(parts1[1], out int month1) &&
+                int.TryParse(parts1[2], out int year1) &&
+                DateValidator.IsValidDate($"{day1}/{month1}/{year1}"))
+            {
+                Date date1 = new Date(day1, month1, year1);
 
-					Console.Write("Enter temporal displacement: ");
-					if (int.TryParse(Console.ReadLine(), out int shift))
-					{
-						Quantum q3 = q1.S(shift);
-						Console.Write("Displaced quantum: ");
-						q3.Disp();
-					}
-					else
-					{
-						Console.WriteLine("Invalid displacement value!");
-					}
+                ProcessAddDaysOperation(date1);
+                ProcessSecondDateOperation(date1);
+            }
+            else
+            {
+                Console.WriteLine("Error: Invalid first date!");
+            }
+        }
 
-					bool leap = q1.Chk();
-					Console.WriteLine($"Leap year resonance: {leap}");
-				}
-				else
-				{
-					Console.WriteLine("Invalid second quantum coordinates!");
-				}
-			}
-			else
-			{
-				Console.WriteLine("Invalid first quantum coordinates!");
-			}
+        private static void ProcessAddDaysOperation(Date date1)
+        {
+            Console.Write($"Сколько дней добавить к ней?  ");
+            if (int.TryParse(Console.ReadLine(), out int daysToAdd))
+            {
+                Date newDate = date1.AddDays(daysToAdd);
+                Console.Write("Новая дата: ");
+                newDate.Display();
+            }
+            else
+            {
+                Console.WriteLine("Error: Invalid number of days!");
+            }
+        }
 
-			Console.WriteLine("\n🌀 ChronoCrypt Termination Sequence 🌀");
-		}
+        private static void ProcessSecondDateOperation(Date date1)
+        {
+            Console.Write("Введите вторую дату для подсчета количества дней между 1ой и второй датой в формате (ДД MM ГГГГ): ");
+            var parts2 = Console.ReadLine().Split(' ');
 
-		internal class Quantum
-		{
-			private DateTime _nexus;
+            if (parts2.Length == 3 &&
+                int.TryParse(parts2[0], out int day2) &&
+                int.TryParse(parts2[1], out int month2) &&
+                int.TryParse(parts2[2], out int year2) &&
+                DateValidator.IsValidDate($"{day2}/{month2}/{year2}"))
+            {
+                Date date2 = new Date(day2, month2, year2);
 
-			public Quantum(int d, int m, int y)
-			{
-				_nexus = new DateTime(y, m, d);
-			}
+                int daysDifference = date1.DaysDifference(date2);
+                Console.WriteLine($"Дней между датами: {daysDifference} дн.");
 
-			public int Maasu(Quantum o)
-			{
-				TimeSpan d = _nexus - o._nexus;
-				return Math.Abs((int)d.TotalDays);
-			}
-
-			public Quantum S(int tem)
-			{
-				DateTime shif = _nexus.AddDays(tem);
-				return new Quantum(shif.Day, shif.Month, shif.Year);
-			}
-
-			public bool Chk()
-			{
-				return DateTime.IsLeapYear(_nexus.Year);
-			}
-
-			public void Disp()
-			{
-				Console.WriteLine($"{_nexus:dd/MM/yyyy}");
-			}
-		}
-
-		private static Dictionary<int, string> _celestial = new Dictionary<int, string>
-		{
-			{0, "S"}, {1, "M"}, {2, "Tu"}, {3, "W"},
-			{4, "Th"}, {5, "F"}, {6, "S"}
-		};
-
-		public static string Transmute(string chrono)
-		{
-			string[] far = chrono.Split('/');
-			return far.Length == 3 ? $"{far[1]}/{far[0]}/{far[2]}" : chrono;
-		}
-
-		public static bool Vrf(string t)
-		{
-			if (string.IsNullOrWhiteSpace(t)) return false;
-
-			string[] papa = t.Split('/');
-			if (papa.Length != 3) return false;
-
-			if (!int.TryParse(papa[0], out int d) ||
-				!int.TryParse(papa[1], out int m) ||
-				!int.TryParse(papa[2], out int y)) return false;
-
-			if (y < 1 || y > 9999) return false;
-			if (m < 1 || m > 12) return false;
-
-			int[] dIM = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-			int mD = dIM[m - 1];
-
-			if (m == 2 && ((y % 4 == 0 && y % 100 != 0) || (y % 400 == 0)))
-				mD = 29;
-
-			return d >= 1 && d <= mD;
-		}
-
-		public static string Rev(string te)
-		{
-			if (!Vrf(te)) return "Temporal Anomaly";
-
-			string[] parts = te.Split('/');
-			var p = new DateTime(int.Parse(parts[2]), int.Parse(parts[1]), int.Parse(parts[0]));
-			return _celestial[(int)p.DayOfWeek];
-		}
-	}
+                bool isLeapYear = date1.IsLeapYear();
+                if (isLeapYear == true)
+                {
+                    Console.WriteLine($"Год високосный");
+                }
+                else
+                {
+                    Console.WriteLine($"Год НЕ високосный");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Error: Invalid second date!");
+            }
+        }
+    }
 }
